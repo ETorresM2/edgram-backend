@@ -30,19 +30,20 @@ server.use(session(sessionConfig));
 const db = knex(knexConfig);
 
 function protected(req, res, next) {
-  console.log("req.session", req.session);
-  if (req.session && req.session.userId) {
+  console.log("middleware session: ", req.session);
+  console.log("middleware params: ", req.params)
+  if (req.session && (req.session.user.id === req.params.receiverId || req.session.user.id === req.params.senderId)) {
     next();
   } else {
     res.status(401).json({ message: "Not Authenticated" });
   }
 }
 
-server.get("/", (req, res) => {
+server.get("/", (req, res,) => {
   res.send("Sanity Check");
 });
 
-server.get("/users", protected, (req, res) => {
+server.get("/users", (req, res) => {
   db("users")
     .then(users => {
       res.status(200).json(users);
@@ -96,8 +97,8 @@ server.post("/posts", (req, res) => {
     .catch(err => res.status(500).json(err));
 });
 
-server.get("/posts/:senderId/:receiverId", (req, res) => {
-  console.log(req.params);
+server.get("/posts/:senderId/:receiverId", protected, (req, res) => {
+  console.log("params: ", req.params);
   db("posts")
     .where({ sender: req.params.senderId, receiver: req.params.receiverId })
     .then(post => {
@@ -110,14 +111,15 @@ server.get("/posts/:senderId/:receiverId", (req, res) => {
 
 server.post("/login", (req, res) => {
   const creds = req.body;
-  console.log(creds);
   db("users")
     .where({ username: creds.username })
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(creds.password, user.password)) {
-        req.session.user = user;
-        console.log("session: ", req.session)
+        console.log("user: ", user)
+        let userdata = user
+        req.session.user = userdata;
+        console.log("session: ", req.session.user)
         res.status(200).json({ message: "authenticated" });
       } else {
         res.status(401).json({ message: "failure" });
