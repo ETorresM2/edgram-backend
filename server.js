@@ -1,6 +1,7 @@
 const knex = require("knex");
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const session = require("express-session");
 const port = process.env.PORT || 5000;
 
 const knexConfig = {
@@ -11,15 +12,37 @@ const knexConfig = {
   useNullAsDefault: true
 };
 
+const sessionConfig = {
+  name: "gram",
+  secret: "bigsecret",
+  cookie: {
+    maxAge: 1000 * 30,
+    secure: process.env.SECURE || false,
+    httpOnly: true
+  },
+  resave: false,
+  saveUninitialized: false
+};
+
 const server = express();
 server.use(express.json());
+server.use(session(sessionConfig));
 const db = knex(knexConfig);
 
+function protected(req, res, next) {
+  console.log("req.session", req.session);
+  if (req.session && req.session.userId) {
+    next();
+  } else {
+    res.status(401).json({ message: "Not Authenticated" });
+  }
+}
+
 server.get("/", (req, res) => {
-  res.send("Hi Amanda, this is sent from Edwins epic server");
+  res.send("Sanity Check");
 });
 
-server.get("/users", (req, res) => {
+server.get("/users", protected, (req, res) => {
   db("users")
     .then(users => {
       res.status(200).json(users);
@@ -92,14 +115,19 @@ server.post("/login", (req, res) => {
     .where({ username: creds.username })
     .first()
     .then(user => {
-      console.log(user);
       if (user && bcrypt.compareSync(creds.password, user.password)) {
+        req.session.user = user;
+        console.log("session: ", req.session)
         res.status(200).json({ message: "authenticated" });
       } else {
         res.status(401).json({ message: "failure" });
       }
     })
     .catch(err => res.status(500).json(err));
+});
+
+server.use(function(req, res) {
+  res.status(404).send("Error: 404 This page does not exist");
 });
 
 server.listen(port, () => {
