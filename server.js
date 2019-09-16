@@ -2,6 +2,7 @@ const knex = require("knex");
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const session = require("express-session");
+const cors = require("cors")
 const port = process.env.PORT || 5000;
 
 const knexConfig = {
@@ -27,15 +28,19 @@ const sessionConfig = {
 const server = express();
 server.use(express.json());
 server.use(session(sessionConfig));
+server.use(cors())
 const db = knex(knexConfig);
 
 // ============================================================================================================================================= Authorization Middleware <-----------------
-
 // This middleware makes sure that a user is logged in and that they are either the sender or recipient of the messages they are requesting
 function rMessage(req, res, next) {
   console.log("middleware session: ", req.session);
-  console.log("middleware params: ", req.params)
-  if (req.session && (req.session.user.id === parseInt(req.params.senderId) || req.session.user.id === parseInt(req.params.receiverId))) {
+  console.log("middleware params: ", req.params);
+  if (
+    req.session &&
+    (req.session.user.id === parseInt(req.params.senderId) ||
+      req.session.user.id === parseInt(req.params.receiverId))
+  ) {
     next();
   } else {
     res.status(401).json({ message: "Not Authenticated" });
@@ -45,16 +50,17 @@ function rMessage(req, res, next) {
 // This middleware makes it so that only the logged in user can send messages under their userId
 function sMessage(req, res, next) {
   console.log("middleware session: ", req.session);
-  console.log("middleware body: ", req.body)
-  if (req.session && (req.session.user.id === parseInt(req.body.sender))) {
+  console.log("middleware body: ", req.body);
+  if (req.session && req.session.user.id === parseInt(req.body.sender)) {
     next();
   } else {
     res.status(401).json({ message: "Not Authenticated" });
   }
 }
 
+// ================================================================================================================================================ Endpoints <-----------------------------
 // This endpoint makes sure confirms the server is up and running
-server.get("/", (req, res,) => {
+server.get("/", (req, res) => {
   res.send("Sanity Check");
 });
 
@@ -68,7 +74,6 @@ server.get("/users", (req, res) => {
       res.status(500).json(error);
     });
 });
-
 
 // This endpoint returns a user by the specified ID
 server.get("/users/:id", (req, res) => {
@@ -139,10 +144,10 @@ server.post("/login", (req, res) => {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(creds.password, user.password)) {
-        console.log("user: ", user)
-        let userdata = user
+        console.log("user: ", user);
+        let userdata = user;
         req.session.user = userdata;
-        console.log("session: ", req.session.user)
+        console.log("session: ", req.session.user);
         res.status(200).json({ message: "authenticated" });
       } else {
         res.status(401).json({ message: "failure" });
@@ -151,7 +156,7 @@ server.post("/login", (req, res) => {
     .catch(err => res.status(500).json(err));
 });
 
-// If an endpoint doesnt exist server will return this 
+// If an endpoint doesnt exist server will return this
 server.use(function(req, res) {
   res.status(404).send("Error: 404 This page does not exist");
 });
