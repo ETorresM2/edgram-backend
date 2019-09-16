@@ -148,7 +148,7 @@ server.post("/login", (req, res) => {
         let userdata = user;
         req.session.user = userdata;
         console.log("session: ", req.session.user);
-        res.status(200).json({ message: "authenticated" });
+        res.status(200).json(user);
       } else {
         res.status(401).json({ message: "failure" });
       }
