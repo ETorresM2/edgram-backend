@@ -16,7 +16,7 @@ const sessionConfig = {
   name: "gram",
   secret: "bigsecret",
   cookie: {
-    maxAge: 1000 * 30,
+    maxAge: 1000 * 30 * 60,
     secure: process.env.SECURE || false,
     httpOnly: true
   },
@@ -32,7 +32,7 @@ const db = knex(knexConfig);
 function protected(req, res, next) {
   console.log("middleware session: ", req.session);
   console.log("middleware params: ", req.params)
-  if (req.session && (req.session.user.id === req.params.receiverId || req.session.user.id === req.params.senderId)) {
+  if (req.session && (req.session.user.id === parseInt(req.params.senderId) || req.session.user.id === parseInt(req.params.receiverId))) {
     next();
   } else {
     res.status(401).json({ message: "Not Authenticated" });
