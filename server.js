@@ -29,7 +29,10 @@ server.use(express.json());
 server.use(session(sessionConfig));
 const db = knex(knexConfig);
 
-function protected(req, res, next) {
+// ============================================================================================================================================= Authorization Middleware <-----------------
+
+// This middleware makes sure that a user is logged in and that they are either the sender or recipient of the messages they are requesting
+function rMessage(req, res, next) {
   console.log("middleware session: ", req.session);
   console.log("middleware params: ", req.params)
   if (req.session && (req.session.user.id === parseInt(req.params.senderId) || req.session.user.id === parseInt(req.params.receiverId))) {
@@ -39,10 +42,23 @@ function protected(req, res, next) {
   }
 }
 
+// This middleware makes it so that only the logged in user can send messages under their userId
+function sMessage(req, res, next) {
+  console.log("middleware session: ", req.session);
+  console.log("middleware body: ", req.body)
+  if (req.session && (req.session.user.id === parseInt(req.body.sender))) {
+    next();
+  } else {
+    res.status(401).json({ message: "Not Authenticated" });
+  }
+}
+
+// This endpoint makes sure confirms the server is up and running
 server.get("/", (req, res,) => {
   res.send("Sanity Check");
 });
 
+// This endpoint returns a list of all users
 server.get("/users", (req, res) => {
   db("users")
     .then(users => {
@@ -53,6 +69,8 @@ server.get("/users", (req, res) => {
     });
 });
 
+
+// This endpoint returns a user by the specified ID
 server.get("/users/:id", (req, res) => {
   console.log(req.params);
   db("users")
@@ -65,6 +83,7 @@ server.get("/users/:id", (req, res) => {
     });
 });
 
+// This endpoint creates a new user
 server.post("/users", (req, res) => {
   let creds = req.body;
   console.log(req.body);
@@ -78,6 +97,7 @@ server.post("/users", (req, res) => {
     .catch(err => res.status(500).json(err));
 });
 
+// This endpoint returns a list of all messages
 server.get("/posts", (req, res) => {
   db("posts")
     .then(posts => {
@@ -88,7 +108,8 @@ server.get("/posts", (req, res) => {
     });
 });
 
-server.post("/posts", (req, res) => {
+// This endpoint creates a new message
+server.post("/posts", sMessage, (req, res) => {
   db("posts")
     .insert(req.body)
     .then(post => {
@@ -97,7 +118,8 @@ server.post("/posts", (req, res) => {
     .catch(err => res.status(500).json(err));
 });
 
-server.get("/posts/:senderId/:receiverId", protected, (req, res) => {
+// This endpoint gets a list of messages between sent from one specified user to another specified user
+server.get("/posts/:senderId/:receiverId", rMessage, (req, res) => {
   console.log("params: ", req.params);
   db("posts")
     .where({ sender: req.params.senderId, receiver: req.params.receiverId })
@@ -109,6 +131,7 @@ server.get("/posts/:senderId/:receiverId", protected, (req, res) => {
     });
 });
 
+// This endpoint logs in a user
 server.post("/login", (req, res) => {
   const creds = req.body;
   db("users")
@@ -128,6 +151,7 @@ server.post("/login", (req, res) => {
     .catch(err => res.status(500).json(err));
 });
 
+// If an endpoint doesnt exist server will return this 
 server.use(function(req, res) {
   res.status(404).send("Error: 404 This page does not exist");
 });
