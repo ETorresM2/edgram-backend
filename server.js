@@ -2,7 +2,7 @@ const knex = require("knex");
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const session = require("express-session");
-const cors = require("cors")
+const cors = require("cors");
 const port = process.env.PORT || 5000;
 
 const knexConfig = {
@@ -28,7 +28,7 @@ const sessionConfig = {
 const server = express();
 server.use(express.json());
 server.use(session(sessionConfig));
-server.use(cors())
+server.use(cors());
 const db = knex(knexConfig);
 
 // ============================================================================================================================================= Authorization Middleware <-----------------
@@ -154,6 +154,36 @@ server.post("/login", (req, res) => {
       }
     })
     .catch(err => res.status(500).json(err));
+});
+
+// Creates a new contact relationship
+server.post("/friends", (req, res) => {
+  const friendship = req.body;
+  db("friendships")
+    .insert(friendship)
+    .then(friend => {
+      res.status(200).json({ message: "success" });
+    })
+    .catch(err => res.status(401).json({ message: err }));
+});
+
+// Gets all contact relationships
+server.get("/friends", (req, res) => {
+  db("friendships")
+    .then(friendships => {
+      res.status(200).json(friendships);
+    })
+    .catch(err => res.status(401).json({ message: err }));
+});
+
+// Gets a users contact relationships
+server.get("/friends/:initiator", (req, res) => {
+  db("friendships")
+    .where({ initiator: req.params.initiator })
+    .then(friendships => {
+      res.status(200).json(friendships);
+    })
+    .catch(err => res.status(401).json({ message: err }));
 });
 
 // If an endpoint doesnt exist server will return this
