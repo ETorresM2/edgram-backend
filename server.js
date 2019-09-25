@@ -17,7 +17,6 @@ const sessionConfig = {
   name: "gram",
   secret: "bigsecret",
   cookie: {
-    maxAge: 1000 * 30 * 60,
     secure: process.env.SECURE || false,
     httpOnly: true
   },
@@ -25,10 +24,32 @@ const sessionConfig = {
   saveUninitialized: false
 };
 
+const allowedOrigins = ["http://localhost:3000"];
+
 const server = express();
 server.use(express.json());
 server.use(session(sessionConfig));
-server.use(cors());
+server.use(
+  cors({
+    origin: function(origin, callback) {
+      // allow requests with no origin
+      // (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        let msg =
+          "The CORS policy for this site does not " +
+          "allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+
+    exposedHeaders: ["Content-Length", "X-Foo", "X-Bar"],
+
+    credentials: true
+  })
+);
+
 const db = knex(knexConfig);
 
 // ============================================================================================================================================= Authorization Middleware <-----------------
@@ -38,8 +59,7 @@ function rMessage(req, res, next) {
   console.log("middleware params: ", req.params);
   if (
     req.session &&
-    (req.session.user.id === parseInt(req.params.senderId) ||
-      req.session.user.id === parseInt(req.params.receiverId))
+    (req.session.user.username === req.params.senderName || req.session.user.username === req.params.receiverName)
   ) {
     next();
   } else {
@@ -47,11 +67,11 @@ function rMessage(req, res, next) {
   }
 }
 
-// This middleware makes it so that only the logged in user can send messages under their userId
+// This middleware makes it so that only the logged in user can send messages under their username
 function sMessage(req, res, next) {
   console.log("middleware session: ", req.session);
   console.log("middleware body: ", req.body);
-  if (req.session && req.session.user.id === parseInt(req.body.sender)) {
+  if (req.session && req.session.user.username === req.body.sender) {
     next();
   } else {
     res.status(401).json({ message: "Not Authenticated" });
@@ -124,10 +144,10 @@ server.post("/posts", sMessage, (req, res) => {
 });
 
 // This endpoint gets a list of messages between sent from one specified user to another specified user
-server.get("/posts/:senderId/:receiverId", rMessage, (req, res) => {
+server.get("/posts/:senderName/:receiverName", rMessage, (req, res) => {
   console.log("params: ", req.params);
   db("posts")
-    .where({ sender: req.params.senderId, receiver: req.params.receiverId })
+    .where({ sender: req.params.senderName, receiver: req.params.receiverName })
     .then(post => {
       res.status(200).json(post);
     })
