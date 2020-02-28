@@ -3,14 +3,20 @@
 module.exports = {
 
   development: {
-    client: 'pg',
-    connection: process.env.DATABASE_URL,
-    pool: {
-      min: 2,
-      max: 10
+    // our DBMS driver
+    client: 'sqlite3',
+    // the location of our db
+    connection: {
+      filename: './data/edgram.db3',
     },
-    migrations: {
-      directory: "./migrations"
-    }
+    // necessary when using sqlite3
+    useNullAsDefault: true
   },
+  migrations: {
+    directory: './data/migrations'
+  },
+  seeds: {
+    directory: "./data/seeds"
+  }
+
 };

@@ -5,13 +5,7 @@ const session = require("express-session");
 const cors = require("cors");
 const port = process.env.PORT || 5000;
 
-const knexConfig = {
-  client: "sqlite3",
-  connection: {
-    filename: "./data/edgram.db"
-  },
-  useNullAsDefault: true
-};
+const config = require('./knexfile.js');
 
 const sessionConfig = {
   name: "gram",
@@ -50,7 +44,9 @@ server.use(
   })
 );
 
-const db = knex(knexConfig);
+const db = knex(config.development);
+module.exports = db;
+
 
 // ============================================================================================================================================= Authorization Middleware <-----------------
 // This middleware makes sure that a user is logged in and that they are either the sender or recipient of the messages they are requesting
