@@ -1,3 +1,4 @@
+require('dotenv').config()
 const knex = require("knex");
 const express = require("express");
 const bcrypt = require("bcryptjs");
