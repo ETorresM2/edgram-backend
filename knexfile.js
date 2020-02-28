@@ -3,18 +3,18 @@ const dbConnection = process.env.DATABASE_URL
 
 module.exports = {
 
-  development: {
-    // our DBMS driver
-    client: 'sqlite3',
-    // the location of our db
-    connection: {
-      filename: './data/edgram.db3',
-    },
-    // necessary when using sqlite3
-    useNullAsDefault: true
-  },
+  // development: {
+  //   // our DBMS driver
+  //   client: 'sqlite3',
+  //   // the location of our db
+  //   connection: {
+  //     filename: './data/edgram.db3',
+  //   },
+  //   // necessary when using sqlite3
+  //   useNullAsDefault: true
+  // },
 
-  production: {
+  development: {
     client: "pg",
     connection: dbConnection,
     pool: {
