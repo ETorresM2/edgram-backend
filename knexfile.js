@@ -13,11 +13,15 @@ module.exports = {
     // necessary when using sqlite3
     useNullAsDefault: true
   },
-  migrations: {
-    directory: './data/migrations'
-  },
-  seeds: {
-    directory: "./data/seeds"
+
+  production: {
+    client: "pg",
+    connection: dbConnection,
+    pool: {
+      min: 2,
+      max: 10
+    }
+
   }
 
 };
