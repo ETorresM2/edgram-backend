@@ -6,7 +6,7 @@ exports.up = function(knex) {
       .text("sender")
       .notNullable()
       .references("username")
-      .intable("users");
+      .inTable("users");
     tbl
       .integer("recieiver")
       .notNullable()
