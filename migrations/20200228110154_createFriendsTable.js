@@ -2,7 +2,7 @@ exports.up = function(knex) {
   return knex.schema.createTable("friendships", tbl => {
     tbl.increments("id");
     tbl
-      .text("initiator")
+      .integer("initiator")
       .notNullable()
       .references("id")
       .inTable("users");
