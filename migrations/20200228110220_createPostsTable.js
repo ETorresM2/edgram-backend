@@ -9,9 +9,9 @@ exports.up = function(knex) {
       .inTable("users");
     tbl
     // I BEFORE E EXCEPT AFTER C!!!!
-      .integer("receiver")
+      .text("receiver")
       .notNullable()
-      .references("id")
+      .references("username")
       .inTable("users");
   });
 };

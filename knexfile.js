@@ -14,6 +14,18 @@ module.exports = {
   //   useNullAsDefault: true
   // },
 
+  production: {
+    client: "pg",
+    connection: dbConnection,
+    pool: {
+      min: 2,
+      max: 10
+    },
+    migrations: {
+      directory: "./migrations"
+    }
+  },
+
   development: {
     client: "pg",
     connection: dbConnection,
