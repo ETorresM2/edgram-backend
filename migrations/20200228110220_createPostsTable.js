@@ -8,7 +8,8 @@ exports.up = function(knex) {
       .references("username")
       .inTable("users");
     tbl
-      .integer("recieiver")
+    // I BEFORE E EXCEPT AFTER C!!!!
+      .integer("receiver")
       .notNullable()
       .references("id")
       .inTable("users");
