@@ -131,7 +131,7 @@ server.get("/posts", (req, res) => {
 });
 
 // This endpoint creates a new message
-server.post("/posts", (req, res) => {
+server.post("/posts", sMessage, (req, res) => {
   db("posts")
     .insert(req.body)
     .then(post => {
