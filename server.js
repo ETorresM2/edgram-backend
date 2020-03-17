@@ -1,12 +1,14 @@
 require('dotenv').config()
 const knex = require("knex");
 const express = require("express");
+const http = require("http");
 const bcrypt = require("bcryptjs");
 const session = require("express-session");
 const cors = require("cors");
 const port = process.env.PORT || 5000;
 
 const config = require('./knexfile.js');
+const socketIo = require("socket.io")
 
 const sessionConfig = {
   name: "gram",
@@ -21,10 +23,12 @@ const sessionConfig = {
 
 const allowedOrigins = ["http://localhost:3000"];
 
-const server = express();
-server.use(express.json());
-server.use(session(sessionConfig));
-server.use(
+const app = express();
+const server = http.createServer(app)
+
+app.use(express.json());
+app.use(session(sessionConfig));
+app.use(
   cors({
     origin: function(origin, callback) {
       // allow requests with no origin
@@ -76,13 +80,13 @@ function sMessage(req, res, next) {
 }
 
 // ================================================================================================================================================ Endpoints <-----------------------------
-// This endpoint makes sure confirms the server is up and running
-server.get("/", (req, res) => {
+// This endpoint makes sure confirms the app is up and running
+app.get("/", (req, res) => {
   res.send("Sanity Check");
 });
 
 // This endpoint returns a list of all users
-server.get("/users", (req, res) => {
+app.get("/users", (req, res) => {
   db("users")
     .then(users => {
       res.status(200).json(users);
@@ -93,7 +97,7 @@ server.get("/users", (req, res) => {
 });
 
 // This endpoint returns a user by the specified ID
-server.get("/users/:id", (req, res) => {
+app.get("/users/:id", (req, res) => {
   console.log(req.params);
   db("users")
     .where("id", req.params.id)
@@ -106,7 +110,7 @@ server.get("/users/:id", (req, res) => {
 });
 
 // This endpoint creates a new user
-server.post("/users", (req, res) => {
+app.post("/users", (req, res) => {
   let creds = req.body;
   console.log(req.body);
   const hash = bcrypt.hashSync(creds.password, 12);
@@ -120,7 +124,7 @@ server.post("/users", (req, res) => {
 });
 
 // This endpoint returns a list of all messages
-server.get("/posts", (req, res) => {
+app.get("/posts", (req, res) => {
   db("posts")
     .then(posts => {
       res.status(500).json(posts);
@@ -131,17 +135,20 @@ server.get("/posts", (req, res) => {
 });
 
 // This endpoint creates a new message
-server.post("/posts", sMessage, (req, res) => {
+app.post("/posts", sMessage, (req, res) => {
   db("posts")
     .insert(req.body)
     .then(post => {
       res.status(201).json(post);
     })
-    .catch(err => res.status(500).json(err));
+    .catch(err => res.status(500).json(err))
+    .then(()=> {
+      io.emit("updateFlag", true)
+  });
 });
 
 // This endpoint gets a list of messages between sent from one specified user to another specified user
-server.get("/posts/:senderName/:receiverName", rMessage, (req, res) => {
+app.get("/posts/:senderName/:receiverName", rMessage, (req, res) => {
   console.log("params: ", req.params);
   db("posts")
     .where({ sender: req.params.senderName, receiver: req.params.receiverName })
@@ -154,7 +161,7 @@ server.get("/posts/:senderName/:receiverName", rMessage, (req, res) => {
 });
 
 // This endpoint logs in a user
-server.post("/login", (req, res) => {
+app.post("/login", (req, res) => {
   const creds = req.body;
   db("users")
     .where({ username: creds.username })
@@ -174,7 +181,7 @@ server.post("/login", (req, res) => {
 });
 
 // Creates a new contact relationship
-server.post("/friends", (req, res) => {
+app.post("/friends", (req, res) => {
   const friendship = req.body;
   db("friendships")
     .insert(friendship)
@@ -185,7 +192,7 @@ server.post("/friends", (req, res) => {
 });
 
 // Gets all contact relationships
-server.get("/friends", (req, res) => {
+app.get("/friends", (req, res) => {
   db("friendships")
     .then(friendships => {
       res.status(200).json(friendships);
@@ -194,7 +201,7 @@ server.get("/friends", (req, res) => {
 });
 
 // Gets a users contact relationships
-server.get("/friends/:initiator", (req, res) => {
+app.get("/friends/:initiator", (req, res) => {
   db("friendships")
     .where({ initiator: req.params.initiator })
     .then(friendships => {
@@ -204,7 +211,7 @@ server.get("/friends/:initiator", (req, res) => {
 });
 
 // If an endpoint doesnt exist server will return this
-server.use(function(req, res) {
+app.use(function(req, res) {
   res.status(404).send("Error: 404 This page does not exist");
 });
 
