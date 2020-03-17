@@ -50,6 +50,7 @@ app.use(
 );
 
 const db = knex(config.development);
+const io = socketIo(server)
 module.exports = db;
 
 
@@ -213,6 +214,10 @@ app.get("/friends/:initiator", (req, res) => {
 // If an endpoint doesnt exist server will return this
 app.use(function(req, res) {
   res.status(404).send("Error: 404 This page does not exist");
+});
+
+io.on('connection', function(socket){
+  console.log('a user connected');
 });
 
 server.listen(port, () => {
