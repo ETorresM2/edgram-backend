@@ -21,7 +21,7 @@ const sessionConfig = {
   saveUninitialized: false
 };
 
-const allowedOrigins = ["http://localhost:3000", "http://stoic-payne-f8119e.netlify.com/"];
+const allowedOrigins = ["http://localhost:3000", "https://stoic-payne-f8119e.netlify.com/"];
 
 const app = express();
 const server = http.createServer(app)
