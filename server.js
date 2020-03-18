@@ -18,7 +18,8 @@ const sessionConfig = {
     httpOnly: true
   },
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  sameSite: "none"
 };
 
 const allowedOrigins = ["https://stoic-payne-f8119e.netlify.com"];
