@@ -49,6 +49,8 @@ app.use(session(sessionConfig));
 //   })
 // );
 
+app.use(cors())
+
 const db = knex(config.development);
 const io = socketIo(server)
 module.exports = db;
