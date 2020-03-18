@@ -28,26 +28,26 @@ const server = http.createServer(app)
 
 app.use(express.json());
 app.use(session(sessionConfig));
-app.use(
-  cors({
-    origin: function(origin, callback) {
-      // allow requests with no origin
-      // (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        let msg =
-          "The CORS policy for this site does not " +
-          "allow access from the specified Origin.";
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
+// app.use(
+//   cors({
+//     origin: function(origin, callback) {
+//       // allow requests with no origin
+//       // (like mobile apps or curl requests)
+//       if (!origin) return callback(null, true);
+//       if (allowedOrigins.indexOf(origin) === -1) {
+//         let msg =
+//           "The CORS policy for this site does not " +
+//           "allow access from the specified Origin.";
+//         return callback(new Error(msg), false);
+//       }
+//       return callback(null, true);
+//     },
 
-    exposedHeaders: ["Content-Length", "X-Foo", "X-Bar"],
+//     exposedHeaders: ["Content-Length", "X-Foo", "X-Bar"],
 
-    credentials: true
-  })
-);
+//     credentials: true
+//   })
+// );
 
 const db = knex(config.development);
 const io = socketIo(server)
