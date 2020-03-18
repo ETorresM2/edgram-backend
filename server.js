@@ -21,13 +21,14 @@ const sessionConfig = {
   saveUninitialized: false
 };
 
-const allowedOrigins = ["http://localhost:3000", "https://stoic-payne-f8119e.netlify.com/"];
+const allowedOrigins = ["https://stoic-payne-f8119e.netlify.com"];
 
 const app = express();
 const server = http.createServer(app)
 
 app.use(express.json());
 app.use(session(sessionConfig));
+app.use(cors({credentials: true, origin: 'https://stoic-payne-f8119e.netlify.com'}));
 // app.use(
 //   cors({
 //     origin: function(origin, callback) {
@@ -49,7 +50,7 @@ app.use(session(sessionConfig));
 //   })
 // );
 
-app.use(cors())
+
 
 const db = knex(config.development);
 const io = socketIo(server)
