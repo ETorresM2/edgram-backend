@@ -22,7 +22,7 @@ const sessionConfig = {
   sameSite: "none"
 };
 
-const allowedOrigins = ["https://stoic-payne-f8119e.netlify.com"];
+const allowedOrigins = ["https://stoic-payne-f8119e.netlify.com", "http://localhost:3000/"];
 
 const app = express();
 const server = http.createServer(app)
