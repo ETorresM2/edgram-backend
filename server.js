@@ -29,7 +29,7 @@ const server = http.createServer(app)
 
 app.use(express.json());
 app.use(session(sessionConfig));
-app.use(cors({credentials: true, origin: 'https://stoic-payne-f8119e.netlify.com'}));
+app.use(cors({credentials: true, origin: allowedOrigins}));
 // app.use(
 //   cors({
 //     origin: function(origin, callback) {
