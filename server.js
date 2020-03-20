@@ -22,7 +22,7 @@ const sessionConfig = {
   sameSite: "none"
 };
 
-const allowedOrigins = ["https://stoic-payne-f8119e.netlify.com", "http://localhost:3000/"];
+const allowedOrigins = ["https://stoic-payne-f8119e.netlify.com", "http://localhost:3000"];
 
 const app = express();
 const server = http.createServer(app)
@@ -184,6 +184,19 @@ app.post("/login", (req, res) => {
     })
     .catch(err => res.status(500).json(err));
 });
+
+app.get('/logout', (req, res) => {
+  if (req.session) {
+    req.session.destroy((err) => {
+      if(err) {
+        error.log(err);
+      } else {
+        return res.redirect('/');
+      }
+    });
+  }
+});
+
 
 // Creates a new contact relationship
 app.post("/friends", (req, res) => {
